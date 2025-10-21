@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Server Health Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-6">
+
+  <h1 class="text-3xl font-bold mb-6">⚙️ Server Health Checker</h1>
+
+  <div class="w-full max-w-4xl bg-gray-800 rounded-2xl shadow-lg p-4">
+    <table class="w-full text-sm text-left border border-gray-700 rounded-lg">
+      <thead class="bg-gray-700 uppercase text-gray-300">
+        <tr>
+          <th class="py-2 px-3">Server</th>
+          <th class="py-2 px-3">CPU</th>
+          <th class="py-2 px-3">Memory</th>
+          <th class="py-2 px-3">Disk</th>
+          <th class="py-2 px-3">Ping</th>
+          <th class="py-2 px-3">Status</th>
+        </tr>
+      </thead>
+      <tbody id="status-table" class="divide-y divide-gray-700"></tbody>
+    </table>
+  </div>
+
+  <!-- Logs -->
+  <h2 class="text-xl font-semibold mt-8 mb-3">📜 Recent Logs</h2>
+  <div id="logs" class="w-full max-w-4xl bg-gray-800 rounded-2xl p-4 text-sm text-gray-300 overflow-y-auto max-h-60 border border-gray-700"></div>
+
+  <!-- Popup Alert -->
+  <div id="alertBox" class="hidden fixed top-5 right-5 bg-red-600 text-white font-semibold px-6 py-3 rounded-xl shadow-lg z-50">
+    ⚠️ Server Down Detected!
+  </div>
+
+  <script>
+    async function loadStatus() {
+      const res = await fetch('/api/status');
+      const data = await res.json();
+
+      const tbody = document.querySelector('#status-table');
+      tbody.innerHTML = "";
+
+      let alertTriggered = false;
+
+      data.forEach(row => {
+        const statusColor = row.status === 'Healthy' ? 'text-green-400' : 'text-red-400';
+        if (row.status !== 'Healthy') alertTriggered = true;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-gray-700">
+            <td class="py-2 px-3">${row.server}</td>
+            <td class="py-2 px-3">${row.cpu}%</td>
+            <td class="py-2 px-3">${row.memory}%</td>
+            <td class="py-2 px-3">${row.disk}%</td>
+            <td class="py-2 px-3">${row.ping ? row.ping + " ms" : "N/A"}</td>
+            <td class="py-2 px-3 font-bold ${statusColor}">${row.status}</td>
+          </tr>`;
+      });
+
+      const alertBox = document.getElementById('alertBox');
+      if (alertTriggered) {
+        alertBox.classList.remove('hidden');
+        setTimeout(() => alertBox.classList.add('hidden'), 4000);
+      }
+
+      
+      loadLogs();
+    }
+
+    async function loadLogs() {
+      const res = await fetch('/api/logs');
+      const logs = await res.json();
+      const container = document.getElementById('logs');
+      container.innerHTML = logs.map(l => 
+        `<div class="border-b border-gray-700 py-1">
+          [${l.time}] ${l.server}: ${l.status} (CPU ${l.cpu}%, MEM ${l.memory}%)
+        </div>`
+      ).join('');
+    }
+
+    loadStatus();
+    setInterval(loadStatus, 5000);
+  </script>
+</body>
+</html>

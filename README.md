@@ -15,10 +15,7 @@ server_health_checker/
     └── index.html      # Dashboard interface
 
 To run the project:
-1. Clone or download the repository, then navigate to the folder:
-   git clone https://github.com/yourusername/server-health-checker.git
-   cd server-health-checker
-
+1.  download the repository.
 2. Install the required packages:
    pip install flask psutil ping3
 
@@ -31,4 +28,5 @@ To run the project:
 The dashboard will display all monitored servers, their resource usage, ping times, and health status. If any server goes down, a red popup alert appears on the top corner of the page, and the event is logged in the database for review. The logs section at the bottom of the page lists the latest health checks with timestamps, CPU, and memory readings for quick tracking.
 
 Future improvements may include adding user authentication, email or Telegram notifications, trend charts for CPU and memory usage, and dynamic management of servers through the dashboard.
+
 
